@@ -1,19 +1,27 @@
 let items = [
   {
-    id: 3776,
-    name: "House of Mirrors"
+    id: 3283,
+    name: 'Mirror of Kalandra',
+    cardId: 3776,
+    card: "House of Mirrors"
   },
   {
-    id: 3509,
-    name: "The Doctor"
+    id: 3891,
+    name: 'Headhunter',
+    cardId: 3509,
+    card: "The Doctor"
   },
   {
-    id: 3423,
-    name: "The Fiend"
+    id: 3891,
+    name: 'Headhunter',
+    cardId: 3423,
+    card: "The Fiend"
   },
   {
-    id: 3616,
-    name: "Beauty Through Death"
+    id: 3841,
+    name: "Queen's Sacrifice",
+    cardId: 3616,
+    card: "Beauty Through Death"
   }
 ]; 
 
