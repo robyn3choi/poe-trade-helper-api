@@ -30,11 +30,20 @@ app.get('/table', cache.get, (req, res) => {
       exchangeRate = Math.floor(response.data.data[0].mean);
 
       for (let item of items) {
-        itemPromises.push(
-          axios.get('https://api.poe.watch/item?id=' + item.id)
-            .then(response => getCardData(item, response.data))
-            .catch(err => console.log(err))
-        );
+
+         // 3x exalted orbs has the ID -1
+         // need only the card data for this
+         // can hardcode the itemPriceCh using exchangeRate and itemPriceEx
+         // 2x exalted orbs has the ID -2
+         // 3x annulment orbs has the ID -3
+         // need to do api call to get value of Orb Of Annulment
+        else {
+          itemPromises.push(
+            axios.get('https://api.poe.watch/item?id=' + item.id)
+              .then(response => getCardData(item, response.data))
+              .catch(err => console.log(err))
+          );
+        }
       }
       Promise.all(itemPromises).then(items => {
         cache.set(req, items);
