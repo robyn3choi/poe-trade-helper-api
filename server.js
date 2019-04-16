@@ -37,13 +37,11 @@ app.get('/table', cache.get, (req, res) => {
          // 2x exalted orbs has the ID -2
          // 3x annulment orbs has the ID -3
          // need to do api call to get value of Orb Of Annulment
-        else {
           itemPromises.push(
             axios.get('https://api.poe.watch/item?id=' + item.id)
               .then(response => getCardData(item, response.data))
               .catch(err => console.log(err))
           );
-        }
       }
       Promise.all(itemPromises).then(items => {
         cache.set(req, items);
