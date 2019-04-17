@@ -1,6 +1,6 @@
 let cardIdToIndex = {};
 
-let itemCardTableEntries = [
+let tableEntries = [
   {
     itemId: 3283,
     name: 'Mirror of Kalandra',
@@ -280,4 +280,4 @@ let itemCardTableEntries = [
   }
 ]; 
 
-module.exports = {itemCardTableEntries, cardIdToIndex};
+module.exports = {tableEntries, cardIdToIndex};

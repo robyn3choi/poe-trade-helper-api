@@ -1,5 +1,6 @@
-let itemCardTableEntries = require('./items').itemCardTableEntries;
+let tableEntries = require('./items').tableEntries;
 let cardIdToIndex = require('./items').cardIdToIndex;
+
 const express = require('express');
 const rateLimit = require('express-rate-limit');
 const axios = require('axios');
@@ -17,51 +18,53 @@ const limiter = rateLimit({
 //  apply to all requests
 app.use(limiter);
 
-let exchangeRate;
-
-app.get('/', (req, res) => {
+init = () => {
   if (Object.entries(cardIdToIndex).length === 0) {
-    buildItemIdList();
+    buildCardIdToIndexDictionary();
   }
   getItemData();
-  res.send('hello world');
-});
+}
 
-// https://api.poe.watch/compact?league=Synthesis gets us all the items and their prices
-// for each item in the response, see if the item id matches a cardId in our itemCardTableEntries
-// to do this - use the response item id to lookup in cardIdToIndex to find the index into our itemCardTableEntries
-
-// build a dictionary of cardId to index into our itemCardTableEntries
-const buildItemIdList = () => {
-  for (let i = 0; i < itemCardTableEntries.length; i++) {
-    var entry = itemCardTableEntries[i];
+// build a dictionary of cardId to index into tableEntries
+buildCardIdToIndexDictionary = () => {
+  for (let i = 0; i < tableEntries.length; i++) {
+    var entry = tableEntries[i];
     cardIdToIndex[entry.cardId] = i;
     cardIdToIndex[entry.itemId] = i;
   }
 }
 
-const getItemData = () => {
+getItemData = () => {
+  // need to get exchange rate
   axios.get("https://api.poe.watch/compact?league=Synthesis")
-    .then(res => {
-      for (let i = 0; i < res.data.length; i++) {
-        var lookupId = res.data[i].id;
-        var tableEntriesIndex = cardIdToIndex[lookupId];
-        if (tableEntriesIndex) {
-          var entry = itemCardTableEntries[tableEntriesIndex];
-
-          if (lookupId == entry.cardId) {
-            entry.cardPriceCh = res.data[i].median;
-          }
-          else {
-            entry.itemPriceCh = res.data[i].median;
-          }
-          
-        }
-      }
-      console.log(itemCardTableEntries);
-    })
+    .then(res => handleItemData(res.data))
     .catch(err => console.log(err))
+}
 
+handleItemData = (items) => {
+  const exaltedOrbPrice = getExaltedOrbPrice(items);
+  
+  for (let i = 0; i < items.length; i++) {
+    var lookupId = items[i].id;
+    var tableEntriesIndex = cardIdToIndex[lookupId];
+    if (tableEntriesIndex) {
+      var entry = tableEntries[tableEntriesIndex];
+      if (lookupId == entry.cardId) {
+        entry.cardPriceCh = items[i].median;
+      }
+      else {
+        entry.itemPriceCh = items[i].median;
+      }
+    }
+  }
+}
+
+getExaltedOrbPrice = (items) => {
+  for (let i = 0; i < items.length; i++) {
+    if (items[i].id === 142) {
+      return items[i].median;
+    }
+  }
 }
 
 // app.get('/table', cache.get, (req, res) => {
@@ -114,7 +117,12 @@ const getItemData = () => {
 //   return item;
 // }
 
+app.get('/', (req, res) => {
+  res.send('hello world');
+});
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`app is running on port ${PORT}`);
+  init();
 })
