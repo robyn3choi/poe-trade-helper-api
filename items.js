@@ -44,7 +44,7 @@ let tableEntries = [
     card: "The Immortal"
   },
   {
-    itemId: 3309,
+    itemId: 6699,
     name: "The Perandus Manor",
     cardId: 2863,
     card: "The Mayor"

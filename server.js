@@ -18,104 +18,119 @@ const limiter = rateLimit({
 //  apply to all requests
 app.use(limiter);
 
+let exaltedPrice;
+let highestId = 1;
+
 init = () => {
   if (Object.entries(cardIdToIndex).length === 0) {
     buildCardIdToIndexDictionary();
+    console.log("dictionary built");
   }
-  getItemData();
+  getItemData()
+    .then(res => {
+      console.log("got item data");
+      getStacks();
+    })
+    .then(res => console.log("initialized"));
 }
 
-// build a dictionary of cardId to index into tableEntries
+// build a dictionary of cardId to array of indices into tableEntries.
+// some table entries have the same item or card as another entry.
+// store the highest id so that we don't have to iterate the entire items list in the api response
 buildCardIdToIndexDictionary = () => {
   for (let i = 0; i < tableEntries.length; i++) {
     var entry = tableEntries[i];
-    cardIdToIndex[entry.cardId] = i;
-    cardIdToIndex[entry.itemId] = i;
+
+    if (!cardIdToIndex[entry.cardId]) {
+      cardIdToIndex[entry.cardId] = [];
+    }
+    cardIdToIndex[entry.cardId].push(i);
+
+    if (!cardIdToIndex[entry.itemId]) {
+      cardIdToIndex[entry.itemId] = [];
+    }
+    cardIdToIndex[entry.itemId].push(i);
+
+    if (entry.cardId > highestId) {
+      highestId = entry.cardId;
+    }
+    if (entry.itemId > highestId) {
+      highestId = entry.itemId;
+    }
   }
 }
 
 getItemData = () => {
-  // need to get exchange rate
-  axios.get("https://api.poe.watch/compact?league=Synthesis")
+  return axios.get("https://api.poe.watch/compact?league=Synthesis")
     .then(res => handleItemData(res.data))
     .catch(err => console.log(err))
 }
 
 handleItemData = (items) => {
-  const exaltedOrbPrice = getExaltedOrbPrice(items);
-  
+  setExaltedPrice(items);
   for (let i = 0; i < items.length; i++) {
     var lookupId = items[i].id;
-    var tableEntriesIndex = cardIdToIndex[lookupId];
-    if (tableEntriesIndex) {
-      var entry = tableEntries[tableEntriesIndex];
-      if (lookupId == entry.cardId) {
-        entry.cardPriceCh = items[i].median;
-      }
-      else {
-        entry.itemPriceCh = items[i].median;
+    var tableEntryIndices = cardIdToIndex[lookupId];
+
+    if (tableEntryIndices) {
+      for (let index of tableEntryIndices) {
+        let entry = tableEntries[index];
+        if (lookupId == entry.cardId) {
+          entry.cardPriceCh = items[i].median;
+        }
+        else {
+          entry.itemPriceCh = items[i].median;
+        }
       }
     }
+    if (lookupId === highestId) {
+      break;
+    }
   }
+  return true;
 }
 
-getExaltedOrbPrice = (items) => {
+setExaltedPrice = (items) => {
   for (let i = 0; i < items.length; i++) {
     if (items[i].id === 142) {
-      return items[i].median;
+      exaltedPrice = items[i].median;
+      return;
+    }
+  }
+  console.log("couldn't find exalted in item data!");
+}
+
+getStacks = () => {
+  return axios.get("https://api.poe.watch/itemdata")
+    .then(res => handleStackData(res.data))
+    .catch(err => console.log(err))
+}
+
+handleStackData = (items) => {
+  for (let i = 0; i < items.length; i++) {
+    var lookupId = items[i].id;
+    var tableEntryIndices = cardIdToIndex[lookupId];
+    if (tableEntryIndices) {
+      for (let index of tableEntryIndices) {
+        let entry = tableEntries[index];
+        if (lookupId == entry.cardId) {
+          entry.stack = items[i].stack;
+        }
+      }
     }
   }
 }
 
-// app.get('/table', cache.get, (req, res) => {
-//   let itemPromises = [];
-
-//   axios.get('https://api.poe.watch/item?id=142')
-//     .then(response => {
-//       exchangeRate = Math.floor(response.data.data[0].mean);
-
-//       for (let item of items) {
-
-//         // 3x exalted orbs has the ID -1
-//         // need only the card data for this
-//         // can hardcode the itemPriceCh using exchangeRate and itemPriceEx
-//         // 2x exalted orbs has the ID -2
-//         // 3x annulment orbs has the ID -3
-//         // need to do api call to get value of Orb Of Annulment
-//         if (item.id < 0) continue;
-//         itemPromises.push(
-//           axios.get('https://api.poe.watch/item?id=' + item.id)
-//             .then(response => getCardData(item, response.data))
-//             .catch(err => console.log(err))
-//         );
-//       }
-//       Promise.all(itemPromises).then(items => {
-//         cache.set(req, items);
-//         res.send(items)
-//       });
-//     })
-//     .catch(err => console.log(err))
-// });
-
-// const getCardData = (item, itemData) => {
-//   return axios.get('https://api.poe.watch/item?id=' + item.cardId)
-//     .then(response => populateItemObject(item, itemData, response.data))
-//     .catch(err => console.log(err));
-// }
-
-// const populateItemObject = (item, itemData, cardData) => {
-//   item.stack = cardData.stack;
-//   item.cardPriceCh = cardData.data[0].median;
-//   item.cardPriceEx = cardData.data[0].median / exchangeRate;
-//   item.stackPriceCh = cardData.stack * item.cardPriceCh;
-//   item.stackPriceEx = cardData.stack * item.cardPriceEx;
-//   item.itemPriceCh = itemData.data[0].median;
-//   item.itemPriceEx = itemData.data[0].median / exchangeRate;
-//   item.profitCh = item.itemPriceCh - item.stackPriceCh;
-//   item.profitEx = item.itemPriceEx - item.stackPriceEx;
-//   item.margin = 100 * item.profitCh / item.itemPriceCh;
-//   return item;
-// }
+app.get('/table', cache.get, (req, res) => {
+  getItemData().then(() => {
+    const response = {
+      tableEntries: tableEntries,
+      exaltedPrice: exaltedPrice
+    }
+    cache.set(req, response);
+    res.send(response);
+  })
+});
 
 app.get('/', (req, res) => {
   res.send('hello world');
