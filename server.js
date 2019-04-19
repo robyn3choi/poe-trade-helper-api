@@ -89,7 +89,6 @@ handleItemData = (items) => {
             entry.itemPriceCh = (annulmentPrice) * 3;
           }
         }
-        
         else {
           entry.itemPriceCh = items[i].median;
         }
