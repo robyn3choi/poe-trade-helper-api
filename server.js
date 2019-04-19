@@ -1,5 +1,5 @@
 let tableEntries = require('./items').tableEntries;
-let cardIdToIndex = require('./items').cardIdToIndex;
+let idToIndex = require('./items').idToIndex;
 
 const express = require('express');
 const rateLimit = require('express-rate-limit');
@@ -19,10 +19,11 @@ const limiter = rateLimit({
 app.use(limiter);
 
 let exaltedPrice;
+let annulmentPrice;
 let highestId = 1;
 
 init = () => {
-  if (Object.entries(cardIdToIndex).length === 0) {
+  if (Object.entries(idToIndex).length === 0) {
     buildCardIdToIndexDictionary();
     console.log("dictionary built");
   }
@@ -41,15 +42,15 @@ buildCardIdToIndexDictionary = () => {
   for (let i = 0; i < tableEntries.length; i++) {
     var entry = tableEntries[i];
 
-    if (!cardIdToIndex[entry.cardId]) {
-      cardIdToIndex[entry.cardId] = [];
+    if (!idToIndex[entry.cardId]) {
+      idToIndex[entry.cardId] = [];
     }
-    cardIdToIndex[entry.cardId].push(i);
+    idToIndex[entry.cardId].push(i);
 
-    if (!cardIdToIndex[entry.itemId]) {
-      cardIdToIndex[entry.itemId] = [];
+    if (!idToIndex[entry.itemId]) {
+      idToIndex[entry.itemId] = [];
     }
-    cardIdToIndex[entry.itemId].push(i);
+    idToIndex[entry.itemId].push(i);
 
     if (entry.cardId > highestId) {
       highestId = entry.cardId;
@@ -69,15 +70,26 @@ getItemData = () => {
 handleItemData = (items) => {
   setExaltedPrice(items);
   for (let i = 0; i < items.length; i++) {
-    var lookupId = items[i].id;
-    var tableEntryIndices = cardIdToIndex[lookupId];
+    var lookupId = items[i].id;                  // sets lookupId to the current items ID
+    var tableEntryIndices = idToIndex[lookupId]; //sets tableEntryIndices to the index number of the current items ID
+                              // sets to null if the current items ID is not in the idToIndex list
 
-    if (tableEntryIndices) {
+    if (tableEntryIndices) {  // if the index exists
       for (let index of tableEntryIndices) {
-        let entry = tableEntries[index];
+        let entry = tableEntries[index]; // sets entry to the info relating to that specific index
         if (lookupId == entry.cardId) {
           entry.cardPriceCh = items[i].median;
+          if (entry.itemId == -1) {
+            entry.itemPriceCh = (exaltedPrice) * 3;
+          }
+          else if (entry.itemId == -2) {
+            entry.itemPriceCh = (exaltedPrice) * 2;
+          }
+          else if (entry.itemId == -3) {
+            entry.itemPriceCh = (annulmentPrice) * 3;
+          }
         }
+        
         else {
           entry.itemPriceCh = items[i].median;
         }
@@ -94,6 +106,9 @@ setExaltedPrice = (items) => {
   for (let i = 0; i < items.length; i++) {
     if (items[i].id === 142) {
       exaltedPrice = items[i].median;
+    }
+    else if (items[i].id === 1343) {
+      annulmentPrice = items[i].median;
       return;
     }
   }
@@ -109,7 +124,7 @@ getStacks = () => {
 handleStackData = (items) => {
   for (let i = 0; i < items.length; i++) {
     var lookupId = items[i].id;
-    var tableEntryIndices = cardIdToIndex[lookupId];
+    var tableEntryIndices = idToIndex[lookupId];
     if (tableEntryIndices) {
       for (let index of tableEntryIndices) {
         let entry = tableEntries[index];

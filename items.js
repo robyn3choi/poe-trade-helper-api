@@ -1,4 +1,4 @@
-let cardIdToIndex = {};
+let idToIndex = {};
 
 let tableEntries = [
   {
@@ -67,12 +67,12 @@ let tableEntries = [
     cardId: 3088,
     card: "The Nurse"
   },
-  {
-    itemId: 8,
-    name: "Watcher's Eye",
-    cardId: 544,
-    card: "The Samurai's Eye"
-  },
+  // {
+  //   itemId: 8,
+  //   name: "Watcher's Eye",
+  //   cardId: 544,
+  //   card: "The Samurai's Eye"
+  // },
   {
     itemId: -1,       // create custom rule for this ID number
     name: "3x Exalted Orb",
@@ -115,24 +115,24 @@ let tableEntries = [
     cardId: 2927,
     card: "The Wolven King's Bite"
   },
-  {
-    itemId: 251, //maybe remove this one cuz of weird prices
-    name: "Ventor's Gamble",
-    cardId: 2627,
-    card: "The Risk"
-  },
+  // {
+  //   itemId: 251, //maybe remove this one cuz of weird prices
+  //   name: "Ventor's Gamble",
+  //   cardId: 2627,
+  //   card: "The Risk"
+  // },
   {
     itemId: -2,
     name: "2x Exalted Orb",
     cardId: 1441,
     card: "The Saint's Treasure"
   },
-  {
-    itemId: 2644,
-    name: "Eyes Of The Greatwolf",
-    cardId: 3424,
-    card: "Mawr Blaidd"
-  },
+  // {
+  //   itemId: 2644,
+  //   name: "Eyes Of The Greatwolf",
+  //   cardId: 3424,
+  //   card: "Mawr Blaidd"
+  // },
   {
     itemId: 8836,
     name: "Atziri's Acuity",
@@ -165,7 +165,7 @@ let tableEntries = [
   },
   {
     itemId: -3,
-    name: "3x Orb Of Annulment",
+    name: "3x Orb Of Annulment", // itemId: 1343
     cardId: 12568,
     card: "The Seeker"
   },
@@ -280,4 +280,4 @@ let tableEntries = [
   }
 ]; 
 
-module.exports = {tableEntries, cardIdToIndex};
+module.exports = {tableEntries, idToIndex};
