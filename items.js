@@ -39,7 +39,7 @@ let tableEntries = [
   },
   {
     itemId: 3776,
-    name: "House Of Mirrors",
+    name: "House of Mirrors",
     cardId: 3604,
     card: "The Immortal"
   },
@@ -59,7 +59,7 @@ let tableEntries = [
     itemId: 2754,
     name: "Berek's Respite",
     cardId: 493,
-    card: "The Spark And The Flame"
+    card: "The Spark and the Flame"
   },
   {
     itemId: 3509,
@@ -101,7 +101,7 @@ let tableEntries = [
     itemId: 3351,
     name: "Lvl 4 Enlighten",
     cardId: 4207,
-    card: "Wealth And Power"
+    card: "Wealth and Power"
   },
   {
     itemId: 3519,
@@ -143,7 +143,7 @@ let tableEntries = [
     itemId: 2644,
     name: "Kaom's Heart (Corrupted)",
     cardId: 2506,
-    card: "Pride Before The Fall"
+    card: "Pride Before the Fall"
   },
   {
     itemId: 4189,
@@ -234,7 +234,7 @@ let tableEntries = [
     itemId: 1336,
     name: "Monstrous Treasure",
     cardId: 674,
-    card: "The Valley Of Steel Boxes"
+    card: "The Valley of Steel Boxes"
   },
   {
     itemId: 1352,
@@ -270,7 +270,7 @@ let tableEntries = [
     itemId: 907,
     name: "The Poet's Pen",
     cardId: 752,
-    card: "A Dab Of Ink"
+    card: "A Dab of Ink"
   },
   {
     itemId: 764,
