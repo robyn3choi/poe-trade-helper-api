@@ -62,9 +62,9 @@ buildCardIdToIndexDictionary = () => {
 }
 
 getItemData = () => {
-  return axios.get("https://api.poe.watch/compact?league=Synthesis")
+  return axios.get("https://api.poe.watch/compact?league=Synthesis+Event+HC+(SRE002)")
     .then(res => handleItemData(res.data))
-    .catch(err => console.log(err))
+    .catch(err => console.log(err)) 
 }
 
 handleItemData = (items) => {
@@ -105,6 +105,7 @@ setExaltedPrice = (items) => {
   for (let i = 0; i < items.length; i++) {
     if (items[i].id === 142) {
       exaltedPrice = items[i].median;
+      console.log(exaltedPrice);
     }
     else if (items[i].id === 1343) {
       annulmentPrice = items[i].median;
@@ -135,13 +136,15 @@ handleStackData = (items) => {
   }
 }
 
-app.get('/table', cache.get, (req, res) => {
+app.get('/table',
+ //cache.get, 
+ (req, res) => {
   getItemData().then(() => {
     const response = {
       tableEntries: tableEntries,
       exaltedPrice: exaltedPrice
     }
-    cache.set(req, response);
+   // cache.set(req, response);
     res.send(response);
   })
 });
