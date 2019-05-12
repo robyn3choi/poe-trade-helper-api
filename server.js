@@ -136,7 +136,7 @@ handleStackData = (items) => {
 }
 
 app.get('/table',
- //cache.get, 
+ cache.get, 
  (req, res) => {
   getItemData().then(() => {
     const response = {
