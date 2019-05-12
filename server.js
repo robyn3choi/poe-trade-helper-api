@@ -105,7 +105,6 @@ setExaltedPrice = (items) => {
   for (let i = 0; i < items.length; i++) {
     if (items[i].id === 142) {
       exaltedPrice = items[i].median;
-      console.log(exaltedPrice);
     }
     else if (items[i].id === 1343) {
       annulmentPrice = items[i].median;
@@ -144,7 +143,7 @@ app.get('/table',
       tableEntries: tableEntries,
       exaltedPrice: exaltedPrice
     }
-   // cache.set(req, response);
+    cache.set(req, response);
     res.send(response);
   })
 });
