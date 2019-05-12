@@ -62,7 +62,7 @@ buildCardIdToIndexDictionary = () => {
 }
 
 getItemData = () => {
-  return axios.get("https://api.poe.watch/compact?league=Synthesis+Event+HC+(SRE002)")
+  return axios.get("https://api.poe.watch/compact?league=Synthesis+Event+(SRE001)")
     .then(res => handleItemData(res.data))
     .catch(err => console.log(err)) 
 }
