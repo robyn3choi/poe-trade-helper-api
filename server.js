@@ -6,9 +6,10 @@ const rateLimit = require('express-rate-limit');
 const axios = require('axios');
 const cors = require('cors');
 const cache = require('./cache');
+const bodyParser = require('body-parser');
 
 const app = express();
-app.use(cors());
+app.use(cors()).use(bodyParser.json());
 
 // rate limiter
 const limiter = rateLimit({
@@ -25,15 +26,15 @@ let highestId = 1;
 init = () => {
   if (Object.entries(idToIndex).length === 0) {
     buildCardIdToIndexDictionary();
-    console.log("dictionary built");
+    console.log('dictionary built');
   }
   getItemData()
     .then(res => {
-      console.log("got item data");
-      getStacks();
+      console.log('got item data');
+      return getStacks();
     })
-    .then(res => console.log("initialized"));
-}
+    .then(res => console.log('initialized'));
+};
 
 // build a dictionary of cardId to array of indices into tableEntries.
 // some table entries have the same item or card as another entry.
@@ -59,37 +60,37 @@ buildCardIdToIndexDictionary = () => {
       highestId = entry.itemId;
     }
   }
-}
+};
 
-getItemData = () => {
-  return axios.get("https://api.poe.watch/compact?league=Synthesis+Event+(SRE001)")
+getItemData = (league = 'Standard') => {
+  const leagueUrlString = league.split(' ').join('+');
+  return axios
+    .get('https://api.poe.watch/compact?league=' + leagueUrlString)
     .then(res => handleItemData(res.data))
-    .catch(err => console.log(err)) 
-}
+    .catch(err => console.log(err));
+};
 
-handleItemData = (items) => {
+handleItemData = items => {
   setExaltedPrice(items);
   for (let i = 0; i < items.length; i++) {
-    var lookupId = items[i].id;                  // sets lookupId to the current items ID
+    var lookupId = items[i].id; // sets lookupId to the current items ID
     var tableEntryIndices = idToIndex[lookupId]; //sets tableEntryIndices to the index number of the current items ID
-                              // sets to null if the current items ID is not in the idToIndex list
+    // sets to null if the current items ID is not in the idToIndex list
 
-    if (tableEntryIndices) {  // if the index exists
+    if (tableEntryIndices) {
+      // if the index exists
       for (let index of tableEntryIndices) {
         let entry = tableEntries[index]; // sets entry to the info relating to that specific index
         if (lookupId == entry.cardId) {
           entry.cardPriceCh = items[i].median;
           if (entry.itemId == -1) {
-            entry.itemPriceCh = (exaltedPrice) * 3;
+            entry.itemPriceCh = exaltedPrice * 3;
+          } else if (entry.itemId == -2) {
+            entry.itemPriceCh = exaltedPrice * 2;
+          } else if (entry.itemId == -3) {
+            entry.itemPriceCh = annulmentPrice * 3;
           }
-          else if (entry.itemId == -2) {
-            entry.itemPriceCh = (exaltedPrice) * 2;
-          }
-          else if (entry.itemId == -3) {
-            entry.itemPriceCh = (annulmentPrice) * 3;
-          }
-        }
-        else {
+        } else {
           entry.itemPriceCh = items[i].median;
         }
       }
@@ -99,28 +100,28 @@ handleItemData = (items) => {
     }
   }
   return true;
-}
+};
 
-setExaltedPrice = (items) => {
+setExaltedPrice = items => {
   for (let i = 0; i < items.length; i++) {
     if (items[i].id === 142) {
       exaltedPrice = items[i].median;
-    }
-    else if (items[i].id === 1343) {
+    } else if (items[i].id === 1343) {
       annulmentPrice = items[i].median;
       return;
     }
   }
   console.log("couldn't find exalted in item data!");
-}
+};
 
 getStacks = () => {
-  return axios.get("https://api.poe.watch/itemdata")
+  return axios
+    .get('https://api.poe.watch/itemdata')
     .then(res => handleStackData(res.data))
-    .catch(err => console.log(err))
-}
+    .catch(err => console.log(err));
+};
 
-handleStackData = (items) => {
+handleStackData = items => {
   for (let i = 0; i < items.length; i++) {
     var lookupId = items[i].id;
     var tableEntryIndices = idToIndex[lookupId];
@@ -128,24 +129,22 @@ handleStackData = (items) => {
       for (let index of tableEntryIndices) {
         let entry = tableEntries[index];
         if (lookupId == entry.cardId) {
-          entry.stack = items[i].stack;
+          entry.stack = items[i].stackSize;
         }
       }
     }
   }
-}
+};
 
-app.get('/table',
- cache.get, 
- (req, res) => {
-  getItemData().then(() => {
+app.get('/table', cache.get, (req, res) => {
+  getItemData(req.query.league).then(() => {
     const response = {
       tableEntries: tableEntries,
       exaltedPrice: exaltedPrice
-    }
+    };
     cache.set(req, response);
     res.send(response);
-  })
+  });
 });
 
 app.get('/', (req, res) => {
@@ -156,4 +155,4 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`app is running on port ${PORT}`);
   init();
-})
+});
