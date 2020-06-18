@@ -14,7 +14,7 @@ app.use(cors()).use(bodyParser.json());
 // rate limiter
 const limiter = rateLimit({
   windowMs: 1000, // 1 sec
-  max: 10 // limit each IP to 10 requests per windowMs
+  max: 10, // limit each IP to 10 requests per windowMs
 });
 //  apply to all requests
 app.use(limiter);
@@ -29,11 +29,11 @@ init = () => {
     console.log('dictionary built');
   }
   getItemData()
-    .then(res => {
+    .then((res) => {
       console.log('got item data');
       return getStacks();
     })
-    .then(res => console.log('initialized'));
+    .then((res) => console.log('initialized'));
 };
 
 // build a dictionary of cardId to array of indices into tableEntries.
@@ -66,11 +66,11 @@ getItemData = (league = 'Standard') => {
   const leagueUrlString = league.split(' ').join('+');
   return axios
     .get('https://api.poe.watch/compact?league=' + leagueUrlString)
-    .then(res => handleItemData(res.data))
-    .catch(err => console.log(err));
+    .then((res) => handleItemData(res.data))
+    .catch((err) => console.log(err));
 };
 
-handleItemData = items => {
+handleItemData = (items) => {
   setExaltedPrice(items);
   for (let i = 0; i < items.length; i++) {
     var lookupId = items[i].id; // sets lookupId to the current items ID
@@ -102,7 +102,7 @@ handleItemData = items => {
   return true;
 };
 
-setExaltedPrice = items => {
+setExaltedPrice = (items) => {
   for (let i = 0; i < items.length; i++) {
     if (items[i].id === 142) {
       exaltedPrice = items[i].median;
@@ -117,11 +117,11 @@ setExaltedPrice = items => {
 getStacks = () => {
   return axios
     .get('https://api.poe.watch/itemdata')
-    .then(res => handleStackData(res.data))
-    .catch(err => console.log(err));
+    .then((res) => handleStackData(res.data))
+    .catch((err) => console.log(err));
 };
 
-handleStackData = items => {
+handleStackData = (items) => {
   for (let i = 0; i < items.length; i++) {
     var lookupId = items[i].id;
     var tableEntryIndices = idToIndex[lookupId];
@@ -140,7 +140,7 @@ app.get('/table', cache.get, (req, res) => {
   getItemData(req.query.league).then(() => {
     const response = {
       tableEntries: tableEntries,
-      exaltedPrice: exaltedPrice
+      exaltedPrice: exaltedPrice,
     };
     cache.set(req, response);
     res.send(response);
@@ -151,7 +151,7 @@ app.get('/', (req, res) => {
   res.send('hello world');
 });
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
   console.log(`app is running on port ${PORT}`);
   init();
